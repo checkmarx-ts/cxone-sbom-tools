@@ -17,8 +17,7 @@ permissions:
 
 jobs:
   build-pdf-docs:
-    runs-on: ubuntu-latest
-    # runs-on: cx-public-ubuntu-x64
+    runs-on: cx-public-ubuntu-x64
     container: sphinxdoc/sphinx-latexpdf:8.2.3@sha256:0fc72dace4e1b181721c8ccacfa7835d6824cb1619ba060f3940e4ac73bd911c
     steps:
 
@@ -50,8 +49,7 @@ jobs:
 
 
   build-ai-skill:
-    runs-on: ubuntu-latest
-    # runs-on: cx-public-ubuntu-x64
+    runs-on: cx-public-ubuntu-x64
     steps:
 
       - name: Fetch Code

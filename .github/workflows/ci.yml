@@ -11,8 +11,7 @@ permissions:
 jobs:
 
   linting:
-      runs-on: ubuntu-latest
-      # runs-on: cx-public-ubuntu-x64
+      runs-on: cx-public-ubuntu-x64
       strategy:
         max-parallel: 3
         matrix:
@@ -39,8 +38,7 @@ jobs:
             pylint --disable=all --enable=E,F --disable=E1121 --score=false src
 
   execute-unit-tests:
-    runs-on: ubuntu-latest
-    # runs-on: cx-public-ubuntu-x64
+    runs-on: cx-public-ubuntu-x64
     steps:
       - name: Fetch Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -60,8 +58,7 @@ jobs:
           python -m unittest discover -v -p test_*.py -s ${{ github.workspace }}/tests
 
   check-format:
-    runs-on: ubuntu-latest
-    # runs-on: cx-public-ubuntu-x64
+    runs-on: cx-public-ubuntu-x64
     steps:
       - name: Fetch Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd

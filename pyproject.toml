@@ -3,7 +3,8 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cxone_sbom"
+name = "cxone-sbom-tools"
+readme = "README.md"
 dynamic = ["version"]
 dependencies = [
   "cryptography==48.0.1",
