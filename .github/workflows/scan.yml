@@ -1,16 +1,16 @@
 name: Checkmarx Scan
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - master
-  # pull_request:
-  #   branches:
-  #     - master
-  #   types:
-  #     - opened
-  #     - reopened
-  #     - synchronize
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - reopened
+      - synchronize
 
 permissions:
   contents: read

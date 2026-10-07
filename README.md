@@ -1,9 +1,7 @@
 # Checkmarx One SBOM Tools
 
-This is a tool for updating and signing SBOMs generated from Checkmarx One scans.
-It can be used as a CLI tool or integrated with Python code for direct API calls.
-
-
+This is an Python module and CLI tool for updating and signing SBOMs generated
+from Checkmarx One scans.
 
 The intended use of this tool is to produce a signed SBOMs that can be attributed
 to an identified signing entity.  For this reason, an x509 certificate must be used
@@ -19,16 +17,28 @@ Signing and verification supports only a single signature.
 
 ## Installing
 
-The module can be installed manually with the URL for the install `.whl` file from the Releases:
+Installation is performed by using `pip`:
+
+```Bash
+pip install cxone-sbom-tools
+```
+
+The module can be installed directly from the release artifacts with the URL for the
+install `.whl` file from the Releases:
 
 ```Bash
 pip install https://github.com/checkmarx-ts/cxone-sbom-tools/releases/download/X.X.X/cxone_sbom-X.X.X-py3-none-any.whl
 ```
 
-To use the CLI, installing with the `[cli]` extra is required to use the CLI interface.  This can be done like so:
+To use the CLI, installing with the `[cli]` extra is required to use the CLI interface.  This can be done with one of the
+following options:
 
 ```Bash
 pip install "cxone_sbom[cli]@https://github.com/checkmarx-ts/cxone-sbom-tools/releases/download/X.X.X/cxone_sbom-X.X.X-py3-none-any.whl"
+```
+
+```Bash
+pip install cxone-sbom-tools[cli]
 ```
 
 ## Using the CLI
