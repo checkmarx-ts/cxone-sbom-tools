@@ -1,0 +1,100 @@
+name: Build Documentation [called]
+on:
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        default: ''
+      whl_tag:
+        type: string
+        default: ''
+      buildonly:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-pdf-docs:
+    runs-on: ubuntu-latest
+    # runs-on: cx-public-ubuntu-x64
+    container: sphinxdoc/sphinx-latexpdf:8.2.3@sha256:0fc72dace4e1b181721c8ccacfa7835d6824cb1619ba060f3940e4ac73bd911c
+    steps:
+
+      - name: Fetch Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.12"
+
+      - name: Configure Pip index
+        run: |
+          pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
+
+      - name: Build PDF
+        run: |
+          echo "__version__='${{ inputs.whl_tag }}'" > src/cxone_sbom/__version__.py
+          pip install --no-cache-dir sphinx-autoapi==3.8.0 .
+          PYTHONPATH=$(pwd)/src sphinx-build -M latexpdf -c docs . docs_build && : || :
+          make -C docs_build
+          mv docs_build/cxone-sbom-tools.pdf docs_build/cxone-sbom-tools-${{ inputs.tag }}.pdf
+
+      - name: Upload pdf artifact
+        if: ${{ ! inputs.buildonly }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: doc-pdf-${{ github.run_number }}
+          path: docs_build/*.pdf
+
+
+  build-ai-skill:
+    runs-on: ubuntu-latest
+    # runs-on: cx-public-ubuntu-x64
+    steps:
+
+      - name: Fetch Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.12"
+
+      - name: Configure Pip index
+        run: |
+          pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
+
+      - name: Build Markdown Docs
+        run: |
+          pip install --no-cache-dir pydoc-markdown==4.8.2
+          pydoc-markdown
+          
+      - name: Build install reference
+        run: |
+          echo "Version: ${{ inputs.tag }}" > ai/skills/cxone-sbom-tools/references/install.md
+          echo "Github Repository: https://github.com/${{ github.repository }}" >> ai/skills/cxone-sbom-tools/references/install.md
+          echo "" >> ai/skills/cxone-sbom-tools/references/install.md
+          echo "# Pip Installation Commands" >> ai/skills/cxone-sbom-tools/references/install.md
+          echo "" >> ai/skills/cxone-sbom-tools/references/install.md
+          echo "## Module" >> ai/skills/cxone-sbom-tools/references/install.md
+          echo "pip install https://github.com/checkmarx-ts/cxone-sbom-tools/releases/download/${{ inputs.tag }}/cxone_sbom-${{ inputs.whl_tag }}-py3-none-any.whl" >> ai/skills/cxone-sbom-tools/references/install.md
+          echo "" >> ai/skills/cxone-sbom-tools/references/install.md
+          echo "## CLI" >> ai/skills/cxone-sbom-tools/references/install.md
+          echo "pip install \"cxone_sbom[cli]@https://github.com/checkmarx-ts/cxone-sbom-tools/releases/download/${{ inputs.tag }}/cxone_sbom-${{ inputs.whl_tag }}-py3-none-any.whl\"" >> ai/skills/cxone-sbom-tools/references/install.md
+          echo "" >> ai/skills/cxone-sbom-tools/references/install.md
+
+      - name: Add README.md as a reference
+        run: |
+          cp README.md ai/skills/cxone-sbom-tools/references/
+
+      - name: Zip skill
+        run: |
+          cd ai/skills/cxone-sbom-tools && zip -r "$OLDPWD/cxone-sbom-tools-skill.zip" . && cd -
+          
+      - name: Upload skill artifact
+        if: ${{ ! inputs.buildonly }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: doc-skill-${{ github.run_number }}
+          path: ./*.zip

@@ -1,0 +1,13 @@
+# Certificate test data. Place at testdata/certs/.gitattributes.
+# Patterns without a slash match at any depth, so these cover every combination
+# subdirectory under valid/ and invalid/.
+
+# OpenSSL writes LF; keep it that way on every platform so the bytes on disk match the
+# bytes that were committed. bundle.pem is a literal concatenation of cert.pem and
+# cert.pkey.pem, so a CRLF working copy breaks byte-exact comparisons. `text` also
+# normalises on commit, which self-heals a CRLF copy added from a Windows checkout.
+*.pem text eol=lf
+
+# Never three-way merge generated key material: merging base64 produces a corrupt PEM
+# that still looks structurally plausible. Resolve conflicts by regenerating.
+*.pem -merge

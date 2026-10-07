@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cxone_sbom"
+dynamic = ["version"]
+dependencies = [
+  "cryptography==48.0.1",
+  "PyJWT==2.13.0",
+  "dataclasses-json==0.6.7",
+  "joserfc==1.7.4",
+  "aenum==3.1.17",
+  "rfc8785==0.1.4"
+]
+
+description = "CheckmarxOne SBOM Tools"
+requires-python = ">=3.10"
+
+[project.scripts]
+cxone-sbom-tools = "cxone_sbom.__main__:main"
+
+[tool.setuptools]
+package-dir = {"cxone_sbom" = "src/cxone_sbom"}
+
+[tool.setuptools.dynamic]
+version = { attr = "cxone_sbom.__version__" }
+
+[project.optional-dependencies]
+cli = ["docopt-ng==0.9.0"]
+
+[tool.pydoc-markdown]
+loaders = [
+  { type = "python", search_path = ["./src"], packages = ["cxone_sbom"]}
+]
+
+processors = [
+  { type = "filter", skip_empty_modules = true, documented_only=true },
+]
+
+[tool.pydoc-markdown.renderer]
+type = "markdown"
+filename = "ai/skills/cxone-sbom-tools/references/cxone-sbom-tools-docs.md"

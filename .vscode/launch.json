@@ -1,0 +1,88 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+  
+    {
+      "name": "sign bundle unencrypted",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "cxone_sbom",
+      "justMyCode": false,
+      "args": ["sign",
+      "--cert",
+      "testdata/certs/valid/ecp521_sha512/bundle.pem",
+      "testdata/sbom/sbom.json"
+    ]
+    },
+    {
+      "name": "sign bundle encrypted",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "cxone_sbom",
+      "justMyCode": false,
+      "env": {"SBOM_KEY_PASS": "password"},
+      "args": ["sign",
+      "--cert",
+      "testdata/certs/valid/ecp521_sha512/bundle.encrypt.pem",
+      "--pass-env",
+      "--scanUrl", "https://foo.com", "-p",
+      "testdata/sbom/sbom.json"
+    ]
+    },
+    {
+      "name": "sign files encrypted",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "cxone_sbom",
+      "justMyCode": false,
+      "args": ["sign",
+      "--cert",
+      "testdata/certs/valid/ecp521_sha512/cert.encrypt.pem",
+      "--p-key", "testdata/certs/valid/ecp521_sha512/cert.encrypt.pkey.pem",
+      "--pass", "password", "--pretty-print",
+      "--cloneUrl", "https://foo.com", "--commit", "foo", "--branch", "foo",
+      "testdata/sbom/sbom.json"
+    ]
+    },
+    {
+      "name": "verify embedded key",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "cxone_sbom",
+      "justMyCode": false,
+      "args": ["verify", "--key", "signed.sbom.json"]
+    },
+    {
+      "name": "verify embedded cert",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "cxone_sbom",
+      "justMyCode": false,
+      "args": ["verify", "--embedded",
+      "--ca", "testdata/certs/valid/ecp521_sha512/bundle.encrypt.pem",
+      "signed.sbom.json"]
+    },
+    {
+      "name": "verify signer cert",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "cxone_sbom",
+      "justMyCode": false,
+      "args": ["verify",
+      "--signer", "testdata/certs/valid/ecp521_sha512/bundle.encrypt.pem",
+      "--ca", "testdata/certs/valid/ecp521_sha512/bundle.encrypt.pem",
+      "signed.sbom.json"]
+    },
+    {
+      "name": "help",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "cxone_sbom",
+      "justMyCode": false,
+      "args": ["-h"]
+    },
+  ]
+}

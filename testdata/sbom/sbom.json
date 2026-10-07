@@ -1,0 +1,1799 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:39f4d836-148c-4951-b2e1-3d20ae003713",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-07-31T10:56:45Z",
+    "tools": {
+      "services": [
+        {
+          "provider": {
+            "name": "Checkmarx",
+            "url": [
+              "https://checkmarx.com/"
+            ],
+            "bom-ref": "Checkmarx"
+          },
+          "name": "Checkmarx SCA"
+        }
+      ]
+    },
+    "component": {
+      "type": "data",
+      "bom-ref": "39f4d836-148c-4951-b2e1-3d20ae003713",
+      "name": "Scan 39f4d836-148c-4951-b2e1-3d20ae003713",
+      "properties": [
+        {
+          "name": "ScanDate",
+          "value": "2026-07-29T15:21:00Z"
+        }
+      ],
+      "tags": [
+        "commit:e6570b8fd0b5d58a2766cccc23cd0defeea19089",
+        "kickoff:BitBucket-Cloud",
+        "service:BitBucket-Cloud",
+        "workflow:push",
+        "cxone-flow:2.4.0-113-prerelease"
+      ]
+    },
+    "properties": [
+      {
+        "name": "ProjectName",
+        "value": "nlws1/EAS/EastCoast/simplyvulnerable"
+      },
+      {
+        "name": "ProjectTags",
+        "value": "cxone-flow:2.4.0-113-prerelease, my-tag-key:my-tag-value, service:BitBucket-Cloud"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Azure.Core-1.25.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Azure.Core",
+      "version": "1.25.0",
+      "description": "This is the implementation of the Azure Client Pipeline",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "949be6ab769996f01f57016448bcb65d56aa4662"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Azure.Core@1.25.0",
+      "externalReferences": [
+        {
+          "url": "https://github.com/Azure/azure-sdk-for-net/blob/Azure.Core_1.25.0/sdk/core/Azure.Core/README.md",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Azure.Identity-1.7.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Azure.Identity",
+      "version": "1.7.0",
+      "description": "This is the implementation of the Azure SDK Client Library for Azure Identity",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "c0a901d3f80768a6b406c25228faf8cabd2ec165"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Azure.Identity@1.7.0",
+      "externalReferences": [
+        {
+          "url": "https://github.com/Azure/azure-sdk-for-net/blob/Azure.Identity_1.7.0/sdk/identity/Azure.Identity/README.md",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.Bcl.AsyncInterfaces-1.1.1",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.Bcl.AsyncInterfaces",
+      "version": "1.1.1",
+      "description": "Provides the IAsyncEnumerable\u003CT\u003E and IAsyncDisposable interfaces and helper types for .NET Standard 2.0. This package is not required starting with .NET Standard 2.1 and .NET Core 3.0.\n\nCommonly Used Types:\nSystem.IAsyncDisposable\nSystem.Collections.Generic.IAsyncEnumerable\nSystem.Collections.Generic.IAsyncEnumerator\n \nWhen using NuGet 3.x this package requires at least version 3.4.",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "41eadc7729d218628363db01ee98b3034cb072c5"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.Bcl.AsyncInterfaces@1.1.1",
+      "externalReferences": [
+        {
+          "url": "https://github.com/dotnet/corefx",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.CSharp-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.CSharp",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/Microsoft.CSharp@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.Data.SqlClient-5.1.1",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.Data.SqlClient",
+      "version": "5.1.1",
+      "description": "Provides the data provider for SQL Server. These classes provide access to versions of SQL Server and encapsulate database-specific protocols, including tabular data stream (TDS)\n    \nCommonly Used Types:\nMicrosoft.Data.SqlClient.SqlConnection\nMicrosoft.Data.SqlClient.SqlException\nMicrosoft.Data.SqlClient.SqlParameter\nMicrosoft.Data.SqlClient.SqlDataReader\nMicrosoft.Data.SqlClient.SqlCommand\nMicrosoft.Data.SqlClient.SqlTransaction\nMicrosoft.Data.SqlClient.SqlParameterCollection\nMicrosoft.Data.SqlClient.SqlClientFactory\n\nWhen using NuGet 3.x this package requires at least version 3.4.",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.Data.SqlClient@5.1.1",
+      "externalReferences": [
+        {
+          "url": "https://aka.ms/sqlclientproject",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.Data.SqlClient.SNI.runtime-5.1.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.Data.SqlClient.SNI.runtime",
+      "version": "5.1.0",
+      "description": "Internal implementation package not meant for direct consumption. Please do not reference directly.\n\nWhen using NuGet 3.x this package requires at least version 3.4.",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.Data.SqlClient.SNI.runtime@5.1.0",
+      "externalReferences": [
+        {
+          "url": "https://aka.ms/sqlclientproject",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.Identity.Client-4.47.2",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.Identity.Client",
+      "version": "4.47.2",
+      "description": "This package contains the binaries of the Microsoft Authentication Library for .NET (MSAL.NET).\n      MSAL.NET makes it easy to obtain tokens from the Microsoft identity platform for developers (formally Azure AD v2.0) signing-in users with work \u0026 school accounts, Microsoft personal accounts, and social identities via Azure AD B2C. These tokens provide access to Microsoft Cloud API and any other API secured by the Microsoft identity platform. This version supports adding authentication functionality to your .NET based clients - .NET, .NET Framework, .NET MAUI, Xamarin iOS, Xamarin Android and UWP",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "5a5ee132380fcef2b87977484433e5c8aac876d1"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.Identity.Client@4.47.2",
+      "externalReferences": [
+        {
+          "url": "https://go.microsoft.com/fwlink/?linkid=844761",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.Identity.Client.Extensions.Msal-2.19.3",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.Identity.Client.Extensions.Msal",
+      "version": "2.19.3",
+      "description": "This package contains extensions to Microsoft Authentication Library for .NET (MSAL.NET)",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "fb2fee9955f94c51fedcd0d5cf8fe069acb7d2d3"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.19.3",
+      "externalReferences": [
+        {
+          "url": "https://github.com/AzureAD/microsoft-authentication-extensions-for-dotnet",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.IdentityModel.Abstractions-6.24.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.IdentityModel.Abstractions",
+      "version": "6.24.0",
+      "description": "A package containing thin abstractions for Microsoft.IdentityModel.",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "caac0617f97c7f7900763d9fd730a6ed6f5c6423"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.IdentityModel.Abstractions@6.24.0",
+      "externalReferences": [
+        {
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.IdentityModel.JsonWebTokens-6.24.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.IdentityModel.JsonWebTokens",
+      "version": "6.24.0",
+      "description": "Includes types that provide support for creating, serializing and validating JSON Web Tokens.",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "742e87c900e0890c6c66656b982fbc84d0f9defe"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.IdentityModel.JsonWebTokens@6.24.0",
+      "externalReferences": [
+        {
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.IdentityModel.Logging-6.24.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.IdentityModel.Logging",
+      "version": "6.24.0",
+      "description": "Includes Event Source based logging support.",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "591b2289721a3557130cb2ffa4430ca8f71a0d1f"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.IdentityModel.Logging@6.24.0",
+      "externalReferences": [
+        {
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.IdentityModel.Protocols-6.24.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.IdentityModel.Protocols",
+      "version": "6.24.0",
+      "description": "Provides base protocol support for OpenIdConnect and WsFederation.",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "013f64e73137066fb9565de925e5349cade27eef"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.IdentityModel.Protocols@6.24.0",
+      "externalReferences": [
+        {
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.IdentityModel.Protocols.OpenIdConnect-6.24.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.IdentityModel.Protocols.OpenIdConnect",
+      "version": "6.24.0",
+      "description": "Includes types that provide support for OpenIdConnect protocol.",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "f9e8b6b950ea7b70d6df50a87a14315dadb75324"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.IdentityModel.Protocols.OpenIdConnect@6.24.0",
+      "externalReferences": [
+        {
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.IdentityModel.Tokens-6.24.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.IdentityModel.Tokens",
+      "version": "6.24.0",
+      "description": "Includes types that provide support for SecurityTokens, Cryptographic operations: Signing, Verifying Signatures, Encryption.",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "0be5ad52933afb0d2b94ea992c55947c8ece3ecf"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.IdentityModel.Tokens@6.24.0",
+      "externalReferences": [
+        {
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.NETCore.Platforms-1.1.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.NETCore.Platforms",
+      "version": "1.1.0",
+      "description": "Provides runtime information required to resolve target framework, platform, and runtime specific implementations of .NETCore packages. \nWhen using NuGet 3.x this package requires at least version 3.4.",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "75d5b7cb644c86346e6e5eb251b64f96723a25a3"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation.  All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.NETCore.Platforms@1.1.0",
+      "externalReferences": [
+        {
+          "url": "https://dot.net/",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.NETCore.Targets-1.1.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.NETCore.Targets",
+      "version": "1.1.0",
+      "description": "Provides supporting infrastructure for portable projects: support identifiers that define framework and runtime for support targets and packages that reference the minimum supported package versions when targeting these. \nWhen using NuGet 3.x this package requires at least version 3.4.",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "e9975e7181fdc256d5516713ef8c491fe6eb5a90"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation.  All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.NETCore.Targets@1.1.0",
+      "externalReferences": [
+        {
+          "url": "https://dot.net/",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.SqlServer.Server-1.0.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.SqlServer.Server",
+      "version": "1.0.0",
+      "description": "This is a helper library for Microsoft.Data.SqlClient enabling cross framework support of UDT types.\n    \nAvailable Types:\nMicrosoft.SqlServer.Server.IBinarySerializer\nMicrosoft.SqlServer.Server.InvalidUdtException\nMicrosoft.SqlServer.Server.SqlFacetAttribute\nMicrosoft.SqlServer.Server.SqlFunctionAttribute\nMicrosoft.SqlServer.Server.SqlMethodAttribute\nMicrosoft.SqlServer.Server.SqlUserDefinedAggregateAttribute\nMicrosoft.SqlServer.Server.SqlUserDefinedTypeAttribute\nMicrosoft.SqlServer.Server.DataAccessKind\nMicrosoft.SqlServer.Server.SystemDataAccessKind\nMicrosoft.SqlServer.Server.Format",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "071a80cbe6037608debd6a4dcbf9abe6177ecc8f"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/Microsoft.SqlServer.Server@1.0.0",
+      "externalReferences": [
+        {
+          "url": "https://aka.ms/sqlclientproject",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-Microsoft.Win32.SystemEvents-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "Microsoft.Win32.SystemEvents",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/Microsoft.Win32.SystemEvents@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Configuration.ConfigurationManager-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Configuration.ConfigurationManager",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Configuration.ConfigurationManager@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Diagnostics.DiagnosticSource-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Diagnostics.DiagnosticSource",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Diagnostics.DiagnosticSource@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Drawing.Common-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Drawing.Common",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Drawing.Common@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Formats.Asn1-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Formats.Asn1",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Formats.Asn1@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.IdentityModel.Tokens.Jwt-6.24.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.IdentityModel.Tokens.Jwt",
+      "version": "6.24.0",
+      "description": "Includes types that provide support for creating, serializing and validating JSON Web Tokens.",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "7d952a36a2af77a9b6136f47215fba8ef4f41d6b"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/System.IdentityModel.Tokens.Jwt@6.24.0",
+      "externalReferences": [
+        {
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Memory-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Memory",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Memory@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Memory.Data-1.0.2",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Memory.Data",
+      "version": "1.0.2",
+      "description": "Contains the BinaryData type, which is useful for converting between strings, streams, JSON, and bytes.",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "e9b5d1d17ab0ec737be30e9d800b3807d4dbd99d"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/System.Memory.Data@1.0.2",
+      "externalReferences": [
+        {
+          "url": "https://github.com/Azure/azure-sdk-for-net/blob/System.Memory.Data_1.0.2/sdk/core/System.Memory.Data/README.md",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Numerics.Vectors-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Numerics.Vectors",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Numerics.Vectors@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Runtime-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Runtime",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Runtime@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Runtime.Caching-6.0.0",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Runtime.Caching",
+      "version": "6.0.0",
+      "description": "Provides classes to use caching facilities.\n\nCommonly Used Types:\nSystem.Runtime.Caching.CacheEntryChangeMonitor\nSystem.Runtime.Caching.CacheEntryRemovedArguments\nSystem.Runtime.Caching.CacheEntryUpdateArguments\nSystem.Runtime.Caching.CacheItem\nSystem.Runtime.Caching.CacheItemPolicy\nSystem.Runtime.Caching.ChangeMonitor\nSystem.Runtime.Caching.FileChangeMonitor\nSystem.Runtime.Caching.HostFileChangeMonitor\nSystem.Runtime.Caching.MemoryCache\nSystem.Runtime.Caching.ObjectCache",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "16b057070c5e68453a0da2fe49b0a4cc544cdd7c"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+      "purl": "pkg:nuget/System.Runtime.Caching@6.0.0",
+      "externalReferences": [
+        {
+          "url": "https://dot.net/",
+          "type": "vcs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Runtime.CompilerServices.Unsafe-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Runtime.CompilerServices.Unsafe",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Runtime.CompilerServices.Unsafe@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Security.AccessControl-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Security.AccessControl",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Security.AccessControl@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Security.Cryptography.Cng-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Security.Cryptography.Cng",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Security.Cryptography.Cng@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Security.Cryptography.ProtectedData-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Security.Cryptography.ProtectedData",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Security.Cryptography.ProtectedData@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Security.Permissions-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Security.Permissions",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Security.Permissions@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Security.Principal.Windows-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Security.Principal.Windows",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Security.Principal.Windows@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Text.Encoding-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Text.Encoding",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Text.Encoding@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Text.Encoding.CodePages-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Text.Encoding.CodePages",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Text.Encoding.CodePages@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Text.Encodings.Web-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Text.Encodings.Web",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Text.Encodings.Web@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Text.Json-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Text.Json",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Text.Json@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Threading.Tasks.Extensions-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Threading.Tasks.Extensions",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Threading.Tasks.Extensions@6.0.36",
+      "externalReferences": []
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-nuget-System.Windows.Extensions-6.0.36",
+      "supplier": {
+        "name": "Nuget"
+      },
+      "authors": [
+        {
+          "name": "Microsoft"
+        }
+      ],
+      "publisher": "Microsoft",
+      "name": "System.Windows.Extensions",
+      "version": "6.0.36",
+      "hashes": [],
+      "licenses": [
+        {
+          "expression": "NOASSERTION"
+        }
+      ],
+      "purl": "pkg:nuget/System.Windows.Extensions@6.0.36",
+      "externalReferences": []
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "39f4d836-148c-4951-b2e1-3d20ae003713",
+      "dependsOn": [
+        "pkg-nuget-Microsoft.Data.SqlClient-5.1.1"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-Azure.Core-1.25.0",
+      "dependsOn": [
+        "pkg-nuget-Microsoft.Bcl.AsyncInterfaces-1.1.1",
+        "pkg-nuget-System.Memory.Data-1.0.2",
+        "pkg-nuget-System.Numerics.Vectors-6.0.36"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-Azure.Identity-1.7.0",
+      "dependsOn": [
+        "pkg-nuget-Azure.Core-1.25.0",
+        "pkg-nuget-Microsoft.Identity.Client.Extensions.Msal-2.19.3",
+        "pkg-nuget-System.Memory-6.0.36",
+        "pkg-nuget-System.Security.Cryptography.ProtectedData-6.0.36",
+        "pkg-nuget-System.Text.Json-6.0.36",
+        "pkg-nuget-System.Threading.Tasks.Extensions-6.0.36"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.Bcl.AsyncInterfaces-1.1.1"
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.CSharp-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.Data.SqlClient-5.1.1",
+      "dependsOn": [
+        "pkg-nuget-Azure.Identity-1.7.0",
+        "pkg-nuget-Microsoft.Data.SqlClient.SNI.runtime-5.1.0",
+        "pkg-nuget-Microsoft.Identity.Client-4.47.2",
+        "pkg-nuget-Microsoft.IdentityModel.JsonWebTokens-6.24.0",
+        "pkg-nuget-Microsoft.IdentityModel.Protocols.OpenIdConnect-6.24.0",
+        "pkg-nuget-Microsoft.SqlServer.Server-1.0.0",
+        "pkg-nuget-System.Configuration.ConfigurationManager-6.0.36",
+        "pkg-nuget-System.Diagnostics.DiagnosticSource-6.0.36",
+        "pkg-nuget-System.Runtime.Caching-6.0.0",
+        "pkg-nuget-System.Security.Cryptography.Cng-6.0.36",
+        "pkg-nuget-System.Security.Principal.Windows-6.0.36",
+        "pkg-nuget-System.Text.Encoding.CodePages-6.0.36",
+        "pkg-nuget-System.Text.Encodings.Web-6.0.36"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.Data.SqlClient.SNI.runtime-5.1.0"
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.Identity.Client-4.47.2",
+      "dependsOn": [
+        "pkg-nuget-Microsoft.IdentityModel.Abstractions-6.24.0"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.Identity.Client.Extensions.Msal-2.19.3"
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.IdentityModel.Abstractions-6.24.0"
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.IdentityModel.JsonWebTokens-6.24.0",
+      "dependsOn": [
+        "pkg-nuget-Microsoft.IdentityModel.Tokens-6.24.0",
+        "pkg-nuget-System.Text.Encoding-6.0.36"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.IdentityModel.Logging-6.24.0"
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.IdentityModel.Protocols-6.24.0"
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.IdentityModel.Protocols.OpenIdConnect-6.24.0",
+      "dependsOn": [
+        "pkg-nuget-Microsoft.IdentityModel.Protocols-6.24.0",
+        "pkg-nuget-System.IdentityModel.Tokens.Jwt-6.24.0"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.IdentityModel.Tokens-6.24.0",
+      "dependsOn": [
+        "pkg-nuget-Microsoft.CSharp-6.0.36",
+        "pkg-nuget-Microsoft.IdentityModel.Logging-6.24.0"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.NETCore.Platforms-1.1.0"
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.NETCore.Targets-1.1.0"
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.SqlServer.Server-1.0.0"
+    },
+    {
+      "ref": "pkg-nuget-Microsoft.Win32.SystemEvents-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-System.Configuration.ConfigurationManager-6.0.36",
+      "dependsOn": [
+        "pkg-nuget-System.Security.Permissions-6.0.36"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-System.Diagnostics.DiagnosticSource-6.0.36",
+      "dependsOn": [
+        "pkg-nuget-System.Runtime.CompilerServices.Unsafe-6.0.36"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-System.Drawing.Common-6.0.36",
+      "dependsOn": [
+        "pkg-nuget-Microsoft.Win32.SystemEvents-6.0.36"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-System.Formats.Asn1-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-System.IdentityModel.Tokens.Jwt-6.24.0"
+    },
+    {
+      "ref": "pkg-nuget-System.Memory-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-System.Memory.Data-1.0.2"
+    },
+    {
+      "ref": "pkg-nuget-System.Numerics.Vectors-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-System.Runtime-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-System.Runtime.Caching-6.0.0"
+    },
+    {
+      "ref": "pkg-nuget-System.Runtime.CompilerServices.Unsafe-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-System.Security.AccessControl-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-System.Security.Cryptography.Cng-6.0.36",
+      "dependsOn": [
+        "pkg-nuget-System.Formats.Asn1-6.0.36"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-System.Security.Cryptography.ProtectedData-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-System.Security.Permissions-6.0.36",
+      "dependsOn": [
+        "pkg-nuget-System.Security.AccessControl-6.0.36",
+        "pkg-nuget-System.Windows.Extensions-6.0.36"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-System.Security.Principal.Windows-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-System.Text.Encoding-6.0.36",
+      "dependsOn": [
+        "pkg-nuget-Microsoft.NETCore.Platforms-1.1.0",
+        "pkg-nuget-Microsoft.NETCore.Targets-1.1.0",
+        "pkg-nuget-System.Runtime-6.0.36"
+      ]
+    },
+    {
+      "ref": "pkg-nuget-System.Text.Encoding.CodePages-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-System.Text.Encodings.Web-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-System.Text.Json-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-System.Threading.Tasks.Extensions-6.0.36"
+    },
+    {
+      "ref": "pkg-nuget-System.Windows.Extensions-6.0.36",
+      "dependsOn": [
+        "pkg-nuget-System.Drawing.Common-6.0.36"
+      ]
+    }
+  ],
+  "vulnerabilities": [
+    {
+      "id": "CVE-2024-29992",
+      "source": {
+        "name": "National Vulnerability Database",
+        "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-29992"
+      },
+      "ratings": [
+        {
+          "score": 5.5,
+          "severity": "medium",
+          "method": "CVSSv3"
+        }
+      ],
+      "cwes": [
+        522
+      ],
+      "description": "An Information Disclosure vulnerability has been found in the Azure Identity Library for .NET, in versions prior to 1.11.0.",
+      "advisories": [
+        {
+          "title": "Advisory",
+          "url": "https://github.com/advisories/GHSA-wvxc-855f-jvrv"
+        },
+        {
+          "title": "Advisory",
+          "url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-29992"
+        },
+        {
+          "title": "Release Note",
+          "url": "https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/CHANGELOG.md#1110-2024-04-09"
+        }
+      ],
+      "published": "2024-04-09T17:16:00Z",
+      "updated": "2025-01-09T22:17:21Z",
+      "affects": [
+        {
+          "ref": "pkg-nuget-Azure.Identity-1.7.0"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2024-35255",
+      "source": {
+        "name": "National Vulnerability Database",
+        "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-35255"
+      },
+      "ratings": [
+        {
+          "score": 5.5,
+          "severity": "medium",
+          "method": "CVSSv3"
+        },
+        {
+          "score": 6.8,
+          "severity": "medium",
+          "method": "CVSSv4"
+        }
+      ],
+      "cwes": [
+        362
+      ],
+      "description": "Azure Identity Libraries and Microsoft Authentication Library Elevation of Privilege Vulnerability. This issue affects nuget Azure.Identity version through 1.11.3, Microsoft.Identity.Client 4.49.1 through 4.60.3 and 4.61.0 through 4.61.2, python azure-identity pkg through 1.16.0b2 and 1.17.0b1,  java pkg  com.azure:azure-identity through 1.12.1, com.microsoft.azure:msal4j 1.14.4-beta through 1.15.0, go pkg github.com/Azure/azure-sdk-for-go/sdk/azidentity through 1.5.9 and npm pkg @azure/msal-node 2.7.0-alpha.0 through 2.9.1, @azure/identity through 4.2.0 and 4.3.0-alpha.20240426.2 through 4.3.0-alpha.20240520.1 and 4.3.0-beta.1. ",
+      "advisories": [
+        {
+          "title": "Advisory",
+          "url": "https://github.com/advisories/GHSA-m5vv-6r4h-3vj9"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/Azure/azure-sdk-for-go/commit/58257dd6c90cd52340cc73952d3a498eedc0c15d"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/Azure/azure-sdk-for-js/commit/c6aa75d312ae463e744163cedfd8fc480cc8d492"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/Azure/azure-sdk-for-python/commit/cb065acd7d0f957327dc4f02d1646d4e51a94178"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/Azure/azure-sdk-for-java/commit/5bf020d6ea056de40e2738e3647a4e06f902c18d"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/Azure/azure-sdk-for-net/commit/9279a4f38bf69b457cfb9b354f210e0a540a5c53"
+        },
+        {
+          "title": "Pull request",
+          "url": "https://github.com/Azure/azure-sdk-for-net/pull/44483"
+        },
+        {
+          "title": "Advisory",
+          "url": "https://github.com/advisories/GHSA-rvj4-q8q5-8grf"
+        },
+        {
+          "title": "Pull request",
+          "url": "https://github.com/Azure/azure-sdk-for-js/pull/29982"
+        },
+        {
+          "title": "Pull request",
+          "url": "https://github.com/Azure/azure-sdk-for-python/pull/36010"
+        },
+        {
+          "title": "Pull request",
+          "url": "https://github.com/Azure/azure-sdk-for-java/pull/40572"
+        },
+        {
+          "title": "Pull request",
+          "url": "https://github.com/Azure/azure-sdk-for-go/pull/23029"
+        }
+      ],
+      "published": "2024-06-11T17:16:00Z",
+      "updated": "2024-12-18T07:23:54Z",
+      "affects": [
+        {
+          "ref": "pkg-nuget-Azure.Identity-1.7.0"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2024-21319",
+      "source": {
+        "name": "National Vulnerability Database",
+        "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-21319"
+      },
+      "ratings": [
+        {
+          "score": 6.8,
+          "severity": "medium",
+          "method": "CVSSv3"
+        }
+      ],
+      "cwes": [
+        20
+      ],
+      "description": "The package \u0022Microsoft.IdentityModel.Tokens\u0022 versions through 5.6.0, 6.5.0 through 6.33.0, and 7.0.0-preview through 7.1.0-preview are vulnerable to a Denial-of-Service (DoS) attack.",
+      "advisories": [
+        {
+          "title": "Advisory",
+          "url": "https://github.com/advisories/GHSA-59j7-ghrg-fj52"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/commit/ceeff41b2d2313e062a4a2ee1849f46d98b56fea"
+        },
+        {
+          "title": "Release Note",
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/releases/tag/7.1.2"
+        },
+        {
+          "title": "Disclosure",
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/wiki/zipcve"
+        }
+      ],
+      "published": "2024-01-09T19:15:12Z",
+      "updated": "2026-03-16T11:54:47Z",
+      "affects": [
+        {
+          "ref": "pkg-nuget-Microsoft.IdentityModel.JsonWebTokens-6.24.0"
+        },
+        {
+          "ref": "pkg-nuget-Microsoft.IdentityModel.Tokens-6.24.0"
+        },
+        {
+          "ref": "pkg-nuget-System.IdentityModel.Tokens.Jwt-6.24.0"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-50652",
+      "source": {
+        "name": "National Vulnerability Database",
+        "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-50652"
+      },
+      "ratings": [
+        {
+          "score": 7.5,
+          "severity": "high",
+          "method": "CVSSv3"
+        }
+      ],
+      "cwes": [
+        502
+      ],
+      "description": "Deserialization of untrusted data in Azure Active Directory allows an unauthorized attacker to deny service over a network. This issue Azure Active Directory versions prior to 5.7.1, 6.x through 7.x prior to 7.7.3 and 8.x prior to 8.19.2.",
+      "advisories": [
+        {
+          "title": "Advisory",
+          "url": "https://github.com/advisories/GHSA-79fq-78m6-5rrm"
+        },
+        {
+          "title": "Advisory",
+          "url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-50652"
+        },
+        {
+          "title": "Pull request",
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/pull/3544"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/commit/ee19952f21d5c170a778bdca901b67076a1cd8f8"
+        },
+        {
+          "title": "Release Note",
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/releases/tag/8.19.2"
+        }
+      ],
+      "published": "2026-07-14T17:17:01Z",
+      "updated": "2026-07-27T14:09:13Z",
+      "affects": [
+        {
+          "ref": "pkg-nuget-Microsoft.IdentityModel.JsonWebTokens-6.24.0"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-50653",
+      "source": {
+        "name": "National Vulnerability Database",
+        "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-50653"
+      },
+      "ratings": [
+        {
+          "score": 7.5,
+          "severity": "high",
+          "method": "CVSSv3"
+        }
+      ],
+      "cwes": [
+        400
+      ],
+      "description": "Loop with unreachable exit condition (\u0027infinite loop\u0027) in Azure Active Directory allows an unauthorized attacker to deny service over a network. This issue Azure Active Directory versions prior to 5.7.1, 6.x through 7.x prior to 7.7.3 and 8.x prior to 8.19.2.",
+      "advisories": [
+        {
+          "title": "Advisory",
+          "url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-50653"
+        },
+        {
+          "title": "Pull request",
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/pull/3545"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/commit/ff96e2534408a4b7dfafc5c1edf4151c30affac9"
+        },
+        {
+          "title": "Release Note",
+          "url": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/releases/tag/8.19.2"
+        }
+      ],
+      "published": "2026-07-14T17:17:01Z",
+      "updated": "2026-07-28T06:40:52Z",
+      "affects": [
+        {
+          "ref": "pkg-nuget-Microsoft.IdentityModel.JsonWebTokens-6.24.0"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2024-0056",
+      "source": {
+        "name": "National Vulnerability Database",
+        "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-0056"
+      },
+      "ratings": [
+        {
+          "score": 8.7,
+          "severity": "high",
+          "method": "CVSSv3"
+        }
+      ],
+      "cwes": [
+        319
+      ],
+      "description": "Microsoft.Data.SqlClient and System.Data.SqlClient SQL Data Provider Security Feature Bypass Vulnerability. This issue affects Microsoft.Data.SqlClient versions through 2.1.6, 3.0.0-preview1 through 3.1.4, 4.0.0-preview1 through 4.0.4, 5.0.0-preview1 through 5.1.2, and 5.2.0-preview1 through 5.2.0-preview4 and System.Data.SqlClient versions through 4.8.5.",
+      "advisories": [
+        {
+          "title": "Advisory",
+          "url": "https://github.com/advisories/GHSA-98g6-xh36-x2p7"
+        },
+        {
+          "title": "Advisory",
+          "url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-0056"
+        },
+        {
+          "title": "Issue",
+          "url": "https://github.com/dotnet/announcements/issues/292"
+        },
+        {
+          "title": "Issue",
+          "url": "https://github.com/dotnet/SqlClient/issues/2292"
+        },
+        {
+          "title": "Release Note",
+          "url": "https://github.com/dotnet/SqlClient/releases/tag/v5.1.3"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/dotnet/SqlClient/commit/7cb40938b85cb3901f2c0e30c63da63ee531de1f"
+        }
+      ],
+      "published": "2024-01-09T18:15:46Z",
+      "updated": "2026-06-21T09:37:39Z",
+      "affects": [
+        {
+          "ref": "pkg-nuget-Microsoft.Data.SqlClient-5.1.1"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2023-36414",
+      "source": {
+        "name": "National Vulnerability Database",
+        "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-36414"
+      },
+      "ratings": [
+        {
+          "score": 8.8,
+          "severity": "high",
+          "method": "CVSSv3"
+        }
+      ],
+      "cwes": [
+        94
+      ],
+      "description": "Azure Identity SDK is vulnerable to Remote Code Execution in versions prior to 1.10.2.",
+      "advisories": [
+        {
+          "title": "Advisory",
+          "url": "https://github.com/advisories/GHSA-5mfx-4wcx-rv27"
+        },
+        {
+          "title": "Advisory",
+          "url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-36414"
+        },
+        {
+          "title": "Pull request",
+          "url": "https://github.com/Azure/azure-sdk-for-net/pull/39331"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/Azure/azure-sdk-for-net/commit/63303f99134cbb16a6283663ad7b5339a62e3713"
+        }
+      ],
+      "published": "2023-10-10T11:21:00Z",
+      "updated": "2024-02-23T05:42:13Z",
+      "affects": [
+        {
+          "ref": "pkg-nuget-Azure.Identity-1.7.0"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2023-36415",
+      "source": {
+        "name": "National Vulnerability Database",
+        "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-36415"
+      },
+      "ratings": [
+        {
+          "score": 8.8,
+          "severity": "high",
+          "method": "CVSSv3"
+        }
+      ],
+      "cwes": [
+        94
+      ],
+      "description": "Azure Identity SDK is vulnerable to Remote Code Execution in azure-sdk-for-java versions prior to 1.10.2, azure-sdk-for-net versions prior to 1.10.2, azure-sdk-for-js versions prior to 3.3.1, and azure-sdk-for-python versions prior to 1.14.1.",
+      "advisories": [
+        {
+          "title": "Advisory",
+          "url": "https://github.com/advisories/GHSA-97x8-7mx2-3m99"
+        },
+        {
+          "title": "Advisory",
+          "url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-36415"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/Azure/azure-sdk-for-java/commit/bd3843b4bac64d22b4408e23c2c6b53220f24188"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/Azure/azure-sdk-for-net/commit/63303f99134cbb16a6283663ad7b5339a62e3713"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/Azure/azure-sdk-for-js/commit/a5b1764416f59827f5c1718c8a51cae0e776385c"
+        },
+        {
+          "title": "Commit",
+          "url": "https://github.com/Azure/azure-sdk-for-python/commit/30c7614805aa7afd975a46c742404ac8a9b50186"
+        },
+        {
+          "title": "Pull request",
+          "url": "https://github.com/Azure/azure-sdk-for-python/pull/32403"
+        },
+        {
+          "title": "Pull request",
+          "url": "https://github.com/Azure/azure-sdk-for-net/pull/39331"
+        }
+      ],
+      "published": "2023-10-10T18:15:00Z",
+      "updated": "2024-06-20T07:48:16Z",
+      "affects": [
+        {
+          "ref": "pkg-nuget-Azure.Identity-1.7.0"
+        }
+      ]
+    }
+  ]
+}

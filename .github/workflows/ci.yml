@@ -1,0 +1,89 @@
+name: CI
+on:
+  workflow_dispatch:
+  push:
+  schedule:
+    - cron: '0 3 * * 1'
+    
+permissions:
+  contents: read
+
+jobs:
+
+  linting:
+      runs-on: ubuntu-latest
+      # runs-on: cx-public-ubuntu-x64
+      strategy:
+        max-parallel: 3
+        matrix:
+          pver:
+            - "3.10"
+            - "3.11"
+            - "3.12"
+            - "3.13"
+            - "3.14"
+      container: python:${{ matrix.pver }}
+      steps:
+        - name: Fetch Code
+          uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+        - name: Install Pylint
+          shell: bash
+          run: |
+            pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
+            pip install pylint .
+
+        - name: Pylint
+          shell: bash
+          run: |
+            pylint --disable=all --enable=E,F --disable=E1121 --score=false src
+
+  execute-unit-tests:
+    runs-on: ubuntu-latest
+    # runs-on: cx-public-ubuntu-x64
+    steps:
+      - name: Fetch Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.12'
+
+      - name: Install packages
+        run: |
+          pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
+          pip install pytest .
+
+      - name: Execute Unit Tests
+        run: |
+          . .env
+          python -m unittest discover -v -p test_*.py -s ${{ github.workspace }}/tests
+
+  check-format:
+    runs-on: ubuntu-latest
+    # runs-on: cx-public-ubuntu-x64
+    steps:
+      - name: Fetch Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.12'
+
+      - name: Check formatting
+        run: |
+          pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
+          pip install black==26.5.1
+          black --target-version py312 --check .
+
+  build-wheel:
+    uses: ./.github/workflows/build-whl.yml
+    secrets: inherit
+    with:
+      buildonly: true
+  
+  build-docs:
+    uses: ./.github/workflows/build-docs.yml
+    secrets: inherit
+    with:
+      buildonly: true      
