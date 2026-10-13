@@ -248,7 +248,7 @@ class SbomSigner(SbomOpBase):
     def from_cert_bundle(
         x509pem: str | PathLike[str] | BinaryIO | bytes,
         password: str | bytes | None = None,
-        hash: HashAlgorithm = HashAlgorithm.SHA256,
+        hash: HashAlgorithm = HashAlgorithm.factory(HashAlgorithm.SHA256),
     ) -> SbomSigner:
         """Create an :class:`SbomSigner` from a PEM bundle containing both the
         certificate and the private key.
@@ -300,7 +300,7 @@ class SbomSigner(SbomOpBase):
         x509pem: str | PathLike[str] | BinaryIO | bytes,
         private_key_pem: str | PathLike[str] | BinaryIO | bytes,
         password: str | bytes | None = None,
-        hash: HashAlgorithm = HashAlgorithm.SHA256,
+        hash: HashAlgorithm = HashAlgorithm.factory(HashAlgorithm.SHA256),
     ) -> SbomSigner:
         """Create an :class:`SbomSigner` from separate certificate and private key files.
 
