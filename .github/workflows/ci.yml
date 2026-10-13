@@ -21,10 +21,13 @@ jobs:
             - "3.12"
             - "3.13"
             - "3.14"
-      container: python:${{ matrix.pver }}
       steps:
         - name: Fetch Code
           uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+        - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+          with:
+            python-version: ${{ matrix.pver }}
 
         - name: Install Pylint
           shell: bash
@@ -56,6 +59,27 @@ jobs:
         run: |
           . .env
           python -m unittest discover -v -p test_*.py -s ${{ github.workspace }}/tests
+
+
+  execute-help:
+    runs-on: cx-public-ubuntu-x64
+    steps:
+      - name: Fetch Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.12'
+
+      - name: Install packages
+        run: |
+          pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
+          pip install .
+
+      - name: Execute help
+        run: |
+          cxone-sbom-tools -h
+
 
   check-format:
     runs-on: cx-public-ubuntu-x64
