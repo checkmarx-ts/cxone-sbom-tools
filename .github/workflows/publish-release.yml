@@ -123,7 +123,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Make release text
+      - name: Make release text header
         run: |
           echo "# cxone-sbom-tools ${{ needs.tag-repo.outputs.tag }}" > release.md
 
@@ -131,12 +131,18 @@ jobs:
           python3 .github/workflows/scripts/json2md.py release_notes.json ${{ inputs.version }} >> release.md
           echo "" >> release.md
 
+
+      - name: Make pre-release text
+        if: ${{ inputs.prerelease }}
+        run: |
           WHEEL_NAME=$(basename $(ls *.whl))
           WHEEL_HASH=$(pip3 hash $WHEEL_NAME | grep "^--")
           RELEASE_URL="https://github.com/${{ github.repository }}/releases/download/${{ needs.tag-repo.outputs.tag }}/$WHEEL_NAME"
 
+          echo "## Install from Release Artifacts" >> release.md
+          echo "This is a pre-release and therefore is not published to PyPi." >> release.md
           echo '```' >> release.md
-          echo $RELEASE_URL >> release.md
+          echo pip install $RELEASE_URL >> release.md
           echo '```' >> release.md
 
           echo "## Hashes" >> release.md
@@ -145,6 +151,13 @@ jobs:
           echo "$WHEEL_HASH" >> release.md
           echo '```' >> release.md
 
+      - name: Make release text
+        if: ${{ ! inputs.prerelease }}
+        run: |
+          echo "## Install from PyPi" >> release.md
+          echo '```' >> release.md
+          echo "pip install cxone-sbom-tools==${{ inputs.version }}" >> release.md
+          echo '```' >> release.md
 
       - name: Create GitHub Release
         id: create_release
