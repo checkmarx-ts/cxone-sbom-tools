@@ -74,7 +74,7 @@ jobs:
       - name: Install packages
         run: |
           pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
-          pip install .
+          pip install .[cli]
 
       - name: Execute help
         run: |
