@@ -40,17 +40,18 @@ class HashAlgorithm(MultiValueEnum):
     """
 
     @staticmethod
-    def factory(hash : HashAlgorithm) -> hashes.HashAlgorithm:
+    def factory(hash: HashAlgorithm) -> hashes.HashAlgorithm:
         if hash == HashAlgorithm.SHA256:
             return hashes.SHA256()
         elif hash == HashAlgorithm.SHA384:
             return hashes.SHA384()
         elif hash == HashAlgorithm.SHA512:
             return hashes.SHA512()
-        
+
     SHA256 = "P-256", "256"
     SHA384 = "P-384", "384"
     SHA512 = "P-521", "512"
+
 
 class ValidationResult(Enum):
     """Enumerates the possible outcomes of validating a signed SBOM's signature.
