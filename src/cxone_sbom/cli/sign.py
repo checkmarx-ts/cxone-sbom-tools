@@ -17,7 +17,7 @@ def __repo_from_args(args: Dict) -> None | RepositoryInfo:
 
 def execute_signing(args: Dict) -> None:
     try:
-        hashalg = HashAlgorithm(args.get("--hash"))
+        hashalg = HashAlgorithm.factory(HashAlgorithm(args.get("--hash")))
         optionals = {
             "scanUrl": args.get("--scanUrl"),
             "repository": __repo_from_args(args),

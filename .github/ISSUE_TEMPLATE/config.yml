@@ -1,0 +1,12 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: /../releases
+    about: The AI skill can answer questions about usage and provide guidance on execution.
+  - name: 🔒 Security Vulnerability
+    url: https://support.checkmarx.com/CheckmarxCustomerServiceCommunity/s/login/
+    about: Report security vulnerabilities to Checkmarx Professional Services via the Support Portal
+  - name: 🆘 Checkmarx Support
+    url: https://support.checkmarx.com/CheckmarxCustomerServiceCommunity/s/
+    about: Get help from Checkmarx Professional Services
+    

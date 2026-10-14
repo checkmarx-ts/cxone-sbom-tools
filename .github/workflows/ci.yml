@@ -11,8 +11,7 @@ permissions:
 jobs:
 
   linting:
-      runs-on: ubuntu-latest
-      # runs-on: cx-public-ubuntu-x64
+      runs-on: cx-public-ubuntu-x64
       strategy:
         max-parallel: 3
         matrix:
@@ -22,10 +21,13 @@ jobs:
             - "3.12"
             - "3.13"
             - "3.14"
-      container: python:${{ matrix.pver }}
       steps:
         - name: Fetch Code
           uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+        - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+          with:
+            python-version: ${{ matrix.pver }}
 
         - name: Install Pylint
           shell: bash
@@ -39,8 +41,7 @@ jobs:
             pylint --disable=all --enable=E,F --disable=E1121 --score=false src
 
   execute-unit-tests:
-    runs-on: ubuntu-latest
-    # runs-on: cx-public-ubuntu-x64
+    runs-on: cx-public-ubuntu-x64
     steps:
       - name: Fetch Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -59,9 +60,466 @@ jobs:
           . .env
           python -m unittest discover -v -p test_*.py -s ${{ github.workspace }}/tests
 
+
+  execute-cli-smoke-tests:
+    runs-on: cx-public-ubuntu-x64
+    steps:
+      - name: Fetch Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.12'
+
+      - name: Install packages
+        run: |
+          pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
+          pip install .[cli]
+
+      - name: Execute help
+        run: |
+          cxone-sbom-tools -h
+
+      - name: Verify embedded public key signature of cyclonedx.signed.example.json (expect exit 254, valid but untrusted)
+        shell: bash
+        run: |
+          rc=0; cxone-sbom-tools verify --key testdata/sbom/cyclonedx.signed.example.json || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key returned exit code $rc, expected 254"; exit 1; }
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 256, verify --signer bundle.pem (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha256.signer.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/bundle.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --signer bundle.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 256 exited 0 with signature element; verify --signer bundle.pem exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 256, verify --embedded (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha256.embedded.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --embedded returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 256 exited 0 with signature element; verify --embedded exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 256, verify --key (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha256.key.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 256 exited 0 with signature element; verify --key exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 384, verify --signer bundle.pem (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha384.signer.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/bundle.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --signer bundle.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 384 exited 0 with signature element; verify --signer bundle.pem exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 384, verify --embedded (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha384.embedded.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --embedded returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 384 exited 0 with signature element; verify --embedded exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 384, verify --key (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha384.key.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 384 exited 0 with signature element; verify --key exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 512, verify --signer bundle.pem (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha512.signer.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/bundle.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --signer bundle.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 512 exited 0 with signature element; verify --signer bundle.pem exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 512, verify --embedded (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha512.embedded.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --embedded returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 512 exited 0 with signature element; verify --embedded exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 512, verify --key (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha512.key.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 512 exited 0 with signature element; verify --key exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 256, verify --signer bundle.encrypt.pem (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha256.signer.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/bundle.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --signer bundle.encrypt.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 256 exited 0 with signature element; verify --signer bundle.encrypt.pem exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 256, verify --embedded (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha256.embedded.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --embedded returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 256 exited 0 with signature element; verify --embedded exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 256, verify --key (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha256.key.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 256 exited 0 with signature element; verify --key exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 384, verify --signer bundle.encrypt.pem (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha384.signer.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/bundle.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --signer bundle.encrypt.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 384 exited 0 with signature element; verify --signer bundle.encrypt.pem exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 384, verify --embedded (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha384.embedded.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --embedded returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 384 exited 0 with signature element; verify --embedded exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 384, verify --key (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha384.key.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 384 exited 0 with signature element; verify --key exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 512, verify --signer bundle.encrypt.pem (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha512.signer.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/bundle.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --signer bundle.encrypt.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 512 exited 0 with signature element; verify --signer bundle.encrypt.pem exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 512, verify --embedded (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha512.embedded.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --embedded returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 512 exited 0 with signature element; verify --embedded exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 512, verify --key (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha512.key.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 512 exited 0 with signature element; verify --key exited 254; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 256, verify --signer cert.pem (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha256.signer.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/cert.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --signer cert.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 256 exited 0 with signature element; verify --signer cert.pem exited 254; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 256, verify --embedded (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha256.embedded.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --embedded returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 256 exited 0 with signature element; verify --embedded exited 254; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 256, verify --key (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha256.key.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 256 exited 0 with signature element; verify --key exited 254; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 384, verify --signer cert.pem (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha384.signer.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/cert.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --signer cert.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 384 exited 0 with signature element; verify --signer cert.pem exited 254; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 384, verify --embedded (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha384.embedded.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --embedded returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 384 exited 0 with signature element; verify --embedded exited 254; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 384, verify --key (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha384.key.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 384 exited 0 with signature element; verify --key exited 254; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 512, verify --signer cert.pem (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha512.signer.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/cert.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --signer cert.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 512 exited 0 with signature element; verify --signer cert.pem exited 254; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 512, verify --embedded (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha512.embedded.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --embedded returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 512 exited 0 with signature element; verify --embedded exited 254; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 512, verify --key (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha512.key.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 512 exited 0 with signature element; verify --key exited 254; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 256, verify --signer cert.encrypt.pem (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha256.signer.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/cert.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --signer cert.encrypt.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 256 exited 0 with signature element; verify --signer cert.encrypt.pem exited 254; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 256, verify --embedded (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha256.embedded.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --embedded returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 256 exited 0 with signature element; verify --embedded exited 254; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 256, verify --key (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha256.key.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 256 exited 0 with signature element; verify --key exited 254; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 384, verify --signer cert.encrypt.pem (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha384.signer.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/cert.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --signer cert.encrypt.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 384 exited 0 with signature element; verify --signer cert.encrypt.pem exited 254; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 384, verify --embedded (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha384.embedded.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --embedded returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 384 exited 0 with signature element; verify --embedded exited 254; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 384, verify --key (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha384.key.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 384 exited 0 with signature element; verify --key exited 254; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 512, verify --signer cert.encrypt.pem (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha512.signer.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/cert.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --signer cert.encrypt.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 512 exited 0 with signature element; verify --signer cert.encrypt.pem exited 254; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 512, verify --embedded (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha512.embedded.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --embedded returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 512 exited 0 with signature element; verify --embedded exited 254; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 512, verify --key (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha512.key.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 512 exited 0 with signature element; verify --key exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 256, verify --signer bundle.pem --ca bundle.pem (expect sign 0, verify 0)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha256.signer.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/bundle.pem" --ca "$d/bundle.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --signer bundle.pem --ca bundle.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 256 exited 0 with signature element; verify --signer bundle.pem --ca bundle.pem exited 0; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 256, verify --embedded --ca bundle.pem (expect sign 0, verify 0)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha256.embedded.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded --ca "$d/bundle.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --embedded --ca bundle.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 256 exited 0 with signature element; verify --embedded --ca bundle.pem exited 0; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 256, verify --key --ca bundle.pem (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha256.key.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key --ca "$d/bundle.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key --ca bundle.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 256 exited 0 with signature element; verify --key --ca bundle.pem exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 384, verify --signer bundle.pem --ca bundle.pem (expect sign 0, verify 0)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha384.signer.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/bundle.pem" --ca "$d/bundle.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --signer bundle.pem --ca bundle.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 384 exited 0 with signature element; verify --signer bundle.pem --ca bundle.pem exited 0; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 384, verify --embedded --ca bundle.pem (expect sign 0, verify 0)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha384.embedded.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded --ca "$d/bundle.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --embedded --ca bundle.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 384 exited 0 with signature element; verify --embedded --ca bundle.pem exited 0; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 384, verify --key --ca bundle.pem (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha384.key.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key --ca "$d/bundle.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key --ca bundle.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 384 exited 0 with signature element; verify --key --ca bundle.pem exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 512, verify --signer bundle.pem --ca bundle.pem (expect sign 0, verify 0)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha512.signer.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/bundle.pem" --ca "$d/bundle.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --signer bundle.pem --ca bundle.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 512 exited 0 with signature element; verify --signer bundle.pem --ca bundle.pem exited 0; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 512, verify --embedded --ca bundle.pem (expect sign 0, verify 0)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha512.embedded.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded --ca "$d/bundle.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --embedded --ca bundle.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 512 exited 0 with signature element; verify --embedded --ca bundle.pem exited 0; $out removed"
+
+      - name: ecp521 sign with bundle.pem (unencrypted cert+key bundle) --hash 512, verify --key --ca bundle.pem (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.sha512.key.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.pem" --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key --ca "$d/bundle.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key --ca bundle.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.pem --hash 512 exited 0 with signature element; verify --key --ca bundle.pem exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 256, verify --signer bundle.encrypt.pem --ca bundle.encrypt.pem (expect sign 0, verify 0)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha256.signer.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/bundle.encrypt.pem" --ca "$d/bundle.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --signer bundle.encrypt.pem --ca bundle.encrypt.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 256 exited 0 with signature element; verify --signer bundle.encrypt.pem --ca bundle.encrypt.pem exited 0; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 256, verify --embedded --ca bundle.encrypt.pem (expect sign 0, verify 0)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha256.embedded.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded --ca "$d/bundle.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --embedded --ca bundle.encrypt.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 256 exited 0 with signature element; verify --embedded --ca bundle.encrypt.pem exited 0; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 256, verify --key --ca bundle.encrypt.pem (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha256.key.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key --ca "$d/bundle.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key --ca bundle.encrypt.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 256 exited 0 with signature element; verify --key --ca bundle.encrypt.pem exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 384, verify --signer bundle.encrypt.pem --ca bundle.encrypt.pem (expect sign 0, verify 0)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha384.signer.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/bundle.encrypt.pem" --ca "$d/bundle.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --signer bundle.encrypt.pem --ca bundle.encrypt.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 384 exited 0 with signature element; verify --signer bundle.encrypt.pem --ca bundle.encrypt.pem exited 0; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 384, verify --embedded --ca bundle.encrypt.pem (expect sign 0, verify 0)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha384.embedded.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded --ca "$d/bundle.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --embedded --ca bundle.encrypt.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 384 exited 0 with signature element; verify --embedded --ca bundle.encrypt.pem exited 0; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 384, verify --key --ca bundle.encrypt.pem (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha384.key.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key --ca "$d/bundle.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key --ca bundle.encrypt.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 384 exited 0 with signature element; verify --key --ca bundle.encrypt.pem exited 254; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 512, verify --signer bundle.encrypt.pem --ca bundle.encrypt.pem (expect sign 0, verify 0)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha512.signer.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/bundle.encrypt.pem" --ca "$d/bundle.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --signer bundle.encrypt.pem --ca bundle.encrypt.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 512 exited 0 with signature element; verify --signer bundle.encrypt.pem --ca bundle.encrypt.pem exited 0; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 512, verify --embedded --ca bundle.encrypt.pem (expect sign 0, verify 0)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha512.embedded.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded --ca "$d/bundle.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --embedded --ca bundle.encrypt.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 512 exited 0 with signature element; verify --embedded --ca bundle.encrypt.pem exited 0; $out removed"
+
+      - name: ecp521 sign with bundle.encrypt.pem (encrypted cert+key bundle) --hash 512, verify --key --ca bundle.encrypt.pem (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.bundle.encrypt.sha512.key.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/bundle.encrypt.pem" --pass-env --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key --ca "$d/bundle.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key --ca bundle.encrypt.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with bundle.encrypt.pem --hash 512 exited 0 with signature element; verify --key --ca bundle.encrypt.pem exited 254; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 256, verify --signer cert.pem --ca cert.pem (expect sign 0, verify 0)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha256.signer.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/cert.pem" --ca "$d/cert.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --signer cert.pem --ca cert.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 256 exited 0 with signature element; verify --signer cert.pem --ca cert.pem exited 0; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 256, verify --embedded --ca cert.pem (expect sign 0, verify 0)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha256.embedded.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded --ca "$d/cert.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --embedded --ca cert.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 256 exited 0 with signature element; verify --embedded --ca cert.pem exited 0; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 256, verify --key --ca cert.pem (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha256.key.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key --ca "$d/cert.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key --ca cert.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 256 exited 0 with signature element; verify --key --ca cert.pem exited 254; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 384, verify --signer cert.pem --ca cert.pem (expect sign 0, verify 0)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha384.signer.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/cert.pem" --ca "$d/cert.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --signer cert.pem --ca cert.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 384 exited 0 with signature element; verify --signer cert.pem --ca cert.pem exited 0; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 384, verify --embedded --ca cert.pem (expect sign 0, verify 0)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha384.embedded.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded --ca "$d/cert.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --embedded --ca cert.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 384 exited 0 with signature element; verify --embedded --ca cert.pem exited 0; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 384, verify --key --ca cert.pem (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha384.key.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key --ca "$d/cert.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key --ca cert.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 384 exited 0 with signature element; verify --key --ca cert.pem exited 254; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 512, verify --signer cert.pem --ca cert.pem (expect sign 0, verify 0)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha512.signer.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/cert.pem" --ca "$d/cert.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --signer cert.pem --ca cert.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 512 exited 0 with signature element; verify --signer cert.pem --ca cert.pem exited 0; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 512, verify --embedded --ca cert.pem (expect sign 0, verify 0)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha512.embedded.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded --ca "$d/cert.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --embedded --ca cert.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 512 exited 0 with signature element; verify --embedded --ca cert.pem exited 0; $out removed"
+
+      - name: ecp521 sign with cert.pem + cert.pkey.pem (unencrypted key) --hash 512, verify --key --ca cert.pem (expect sign 0, verify 254)
+        shell: bash
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.sha512.key.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.pem" --p-key "$d/cert.pkey.pem" --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key --ca "$d/cert.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key --ca cert.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.pem + cert.pkey.pem --hash 512 exited 0 with signature element; verify --key --ca cert.pem exited 254; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 256, verify --signer cert.encrypt.pem --ca cert.encrypt.pem (expect sign 0, verify 0)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha256.signer.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/cert.encrypt.pem" --ca "$d/cert.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --signer cert.encrypt.pem --ca cert.encrypt.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 256 exited 0 with signature element; verify --signer cert.encrypt.pem --ca cert.encrypt.pem exited 0; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 256, verify --embedded --ca cert.encrypt.pem (expect sign 0, verify 0)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha256.embedded.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded --ca "$d/cert.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --embedded --ca cert.encrypt.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 256 exited 0 with signature element; verify --embedded --ca cert.encrypt.pem exited 0; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 256, verify --key --ca cert.encrypt.pem (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha256.key.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 256 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key --ca "$d/cert.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key --ca cert.encrypt.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 256 exited 0 with signature element; verify --key --ca cert.encrypt.pem exited 254; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 384, verify --signer cert.encrypt.pem --ca cert.encrypt.pem (expect sign 0, verify 0)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha384.signer.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/cert.encrypt.pem" --ca "$d/cert.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --signer cert.encrypt.pem --ca cert.encrypt.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 384 exited 0 with signature element; verify --signer cert.encrypt.pem --ca cert.encrypt.pem exited 0; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 384, verify --embedded --ca cert.encrypt.pem (expect sign 0, verify 0)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha384.embedded.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded --ca "$d/cert.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --embedded --ca cert.encrypt.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 384 exited 0 with signature element; verify --embedded --ca cert.encrypt.pem exited 0; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 384, verify --key --ca cert.encrypt.pem (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha384.key.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 384 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key --ca "$d/cert.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key --ca cert.encrypt.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 384 exited 0 with signature element; verify --key --ca cert.encrypt.pem exited 254; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 512, verify --signer cert.encrypt.pem --ca cert.encrypt.pem (expect sign 0, verify 0)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha512.signer.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --signer "$d/cert.encrypt.pem" --ca "$d/cert.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --signer cert.encrypt.pem --ca cert.encrypt.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 512 exited 0 with signature element; verify --signer cert.encrypt.pem --ca cert.encrypt.pem exited 0; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 512, verify --embedded --ca cert.encrypt.pem (expect sign 0, verify 0)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha512.embedded.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --embedded --ca "$d/cert.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::verify --embedded --ca cert.encrypt.pem returned exit code $rc, expected 0"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 512 exited 0 with signature element; verify --embedded --ca cert.encrypt.pem exited 0; $out removed"
+
+      - name: ecp521 sign with cert.encrypt.pem + cert.encrypt.pkey.pem (encrypted key) --hash 512, verify --key --ca cert.encrypt.pem (expect sign 0, verify 254)
+        shell: bash
+        env:
+          SBOM_KEY_PASS: password
+        run: |
+          d=testdata/certs/simple/ecp521_sha512; out=signed.ecp521.cert.encrypt.sha512.key.ca.json; st=0; ( rc=0; cxone-sbom-tools sign --cert "$d/cert.encrypt.pem" --p-key "$d/cert.encrypt.pkey.pem" --pass-env --hash 512 testdata/sbom/sbom.json "$out" || rc=$?; [ "$rc" -eq 0 ] || { echo "::error::sign returned exit code $rc, expected 0"; exit 1; }; [ -f "$out" ] || { echo "::error::signed SBOM $out was not produced"; exit 1; }; jq -e 'has("signature")' "$out" > /dev/null || { echo "::error::signed SBOM $out has no signature element"; exit 1; }; rc=0; cxone-sbom-tools verify --key --ca "$d/cert.encrypt.pem" "$out" || rc=$?; [ "$rc" -eq 254 ] || { echo "::error::verify --key --ca cert.encrypt.pem returned exit code $rc, expected 254"; exit 1; } ) || st=$?; rm -f "$out"; [ ! -e "$out" ] || { echo "::error::signed SBOM $out was not removed"; exit 1; }; [ "$st" -eq 0 ] || exit "$st"; echo "PASS: sign with cert.encrypt.pem + cert.encrypt.pkey.pem --hash 512 exited 0 with signature element; verify --key --ca cert.encrypt.pem exited 254; $out removed"
+
+
   check-format:
-    runs-on: ubuntu-latest
-    # runs-on: cx-public-ubuntu-x64
+    runs-on: cx-public-ubuntu-x64
     steps:
       - name: Fetch Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd

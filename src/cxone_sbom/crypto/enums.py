@@ -1,3 +1,4 @@
+from __future__ import annotations
 from cryptography.hazmat.primitives import hashes
 from aenum import MultiValueEnum
 from enum import Enum
@@ -38,9 +39,18 @@ class HashAlgorithm(MultiValueEnum):
     digest length as a string (e.g. ``"256"``).
     """
 
-    SHA256 = hashes.SHA256(), "P-256", "256"
-    SHA384 = hashes.SHA384(), "P-384", "384"
-    SHA512 = hashes.SHA512(), "P-521", "512"
+    @staticmethod
+    def factory(hash: HashAlgorithm) -> hashes.HashAlgorithm:
+        if hash == HashAlgorithm.SHA256:
+            return hashes.SHA256()
+        elif hash == HashAlgorithm.SHA384:
+            return hashes.SHA384()
+        elif hash == HashAlgorithm.SHA512:
+            return hashes.SHA512()
+
+    SHA256 = "P-256", "256"
+    SHA384 = "P-384", "384"
+    SHA512 = "P-521", "512"
 
 
 class ValidationResult(Enum):

@@ -1,16 +1,20 @@
 name: Checkmarx Scan
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - master
-  # pull_request:
-  #   branches:
-  #     - master
-  #   types:
-  #     - opened
-  #     - reopened
-  #     - synchronize
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+
+env:
+  VIRTUALENV_NO_PERIODIC_UPDATE: 1
 
 permissions:
   contents: read

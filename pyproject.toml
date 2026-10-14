@@ -3,19 +3,25 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cxone_sbom"
+name = "cxone-sbom-tools"
+readme = "README.md"
 dynamic = ["version"]
 dependencies = [
-  "cryptography==48.0.1",
-  "PyJWT==2.13.0",
-  "dataclasses-json==0.6.7",
-  "joserfc==1.7.4",
-  "aenum==3.1.17",
-  "rfc8785==0.1.4"
+  "cryptography>=50.0.2",
+  "PyJWT>=2.15.0",
+  "dataclasses-json>=0.6.7",
+  "joserfc>=1.7.5",
+  "aenum>=3.1.17",
+  "rfc8785>=0.1.4"
 ]
 
 description = "CheckmarxOne SBOM Tools"
 requires-python = ">=3.10"
+
+[project.urls]
+Homepage = "https://github.com/checkmarx-ts/cxone-sbom-tools"
+Repository = "https://github.com/checkmarx-ts/cxone-sbom-tools"
+Documentation = "https://github.com/checkmarx-ts/cxone-sbom-tools/releases/latest/download/cxone-sbom-tools-skill.zip"
 
 [project.scripts]
 cxone-sbom-tools = "cxone_sbom.__main__:main"
