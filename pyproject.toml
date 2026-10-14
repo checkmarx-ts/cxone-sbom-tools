@@ -7,12 +7,12 @@ name = "cxone-sbom-tools"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
-  "cryptography==50.0.2",
-  "PyJWT==2.15.0",
-  "dataclasses-json==0.6.7",
-  "joserfc==1.7.5",
-  "aenum==3.1.17",
-  "rfc8785==0.1.4"
+  "cryptography>=50.0.2",
+  "PyJWT>=2.15.0",
+  "dataclasses-json>=0.6.7",
+  "joserfc>=1.7.5",
+  "aenum>=3.1.17",
+  "rfc8785>=0.1.4"
 ]
 
 description = "CheckmarxOne SBOM Tools"
