@@ -65,7 +65,7 @@ jobs:
 
   artifact-cleanup:
     runs-on: cx-public-ubuntu-x64
-    needs: [publish-release]
+    needs: [publish-release, publish-pypi]
     if: always()
     steps:
       - uses: step-security/delete-artifact@9a5b2d6793eb97cf052deddb87cd073aabb77385 # v6.0.0
