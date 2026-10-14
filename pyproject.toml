@@ -18,6 +18,11 @@ dependencies = [
 description = "CheckmarxOne SBOM Tools"
 requires-python = ">=3.10"
 
+[project.urls]
+Homepage = "https://github.com/checkmarx-ts/cxone-sbom-tools"
+Repository = "https://github.com/checkmarx-ts/cxone-sbom-tools"
+Documentation = "https://github.com/checkmarx-ts/cxone-sbom-tools/releases/latest/download/cxone-sbom-tools-skill.zip"
+
 [project.scripts]
 cxone-sbom-tools = "cxone_sbom.__main__:main"
 

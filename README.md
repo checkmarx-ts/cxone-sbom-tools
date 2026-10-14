@@ -7,6 +7,17 @@ The intended use of this tool is to produce a signed SBOMs that can be attribute
 to an identified signing entity.  For this reason, an x509 certificate must be used
 to provide the public key of a key pair.
 
+## Documentation
+
+The release artifacts include an AI skill that is the recommended documentation.
+
+The AI skill can provide usage guidance and answer some questions about secure implementation
+that is beyond the scope of discussion related to documentation for this tool.
+
+Execute `cxone-sbom-tools -h` after installation to see the command line documentation if
+AI use is not available. A PDF of the API documentation is available for download in the release
+artifacts found in the repository.
+
 ## Supported SBOM Standards
 
 ### CycloneDX 1.7
@@ -41,12 +52,3 @@ pip install "cxone_sbom[cli]@https://github.com/checkmarx-ts/cxone-sbom-tools/re
 pip install cxone-sbom-tools[cli]
 ```
 
-## Using the CLI
-
-Execute `cxone-sbom-tools -h` for a list of command line options.  An AI skill can be downloaded from the release artifacts
-to assist with explaining the command line execution.
-
-## Using the API
-
-A PDF of the API documentation is available for download.  An AI skill can be downloaded from the release artifacts to
-assist with generating code examples for using the API.
